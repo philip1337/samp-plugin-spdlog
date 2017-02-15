@@ -1,0 +1,10 @@
+vars = {
+    'github_gabime': 'https://github.com/gabime',
+	'github_zeex': 'https://github.com/Zeex',
+}
+
+deps = {
+    'external/spdlog': Var('github_gabime') + '/spdlog.git@054eb555ca0a37b5b75c36618dfc0d1be6295316',
+	'external/sampcmake': Var('github_zeex') + '/cmake-modules.git@ed087cc97e84a18f0626a980e45c0491d18da31a',
+	'external/sampsdk': Var('github_zeex') + '/samp-plugin-sdk.git@15ffdfcb1faad2c77e57a64ccdd8147a9a7b92f5'
+}

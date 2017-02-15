@@ -1,0 +1,5 @@
+entries = {
+  'external/sampcmake': 'https://github.com/Zeex/cmake-modules.git@ed087cc97e84a18f0626a980e45c0491d18da31a',
+  'external/sampsdk': 'https://github.com/Zeex/samp-plugin-sdk.git@15ffdfcb1faad2c77e57a64ccdd8147a9a7b92f5',
+  'external/spdlog': 'https://github.com/gabime/spdlog.git@054eb555ca0a37b5b75c36618dfc0d1be6295316',
+}
