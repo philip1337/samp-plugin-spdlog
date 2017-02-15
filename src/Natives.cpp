@@ -9,49 +9,89 @@
 
 SAMPLOG_BEGIN_NS
 
-cell AMX_NATIVE_CALL CreateLog(AMX *amx, cell *params)
+/**
+ * native ConsoleLogger(const name[])
+ */
+AMX_NATIVE(ConsoleLogger)
+{
+	// Get params
+	char *logger;
+	amx_StrParam(amx, params[1], logger);
+
+	// Logger
+	auto console = spdlog::stdout_color_mt(logger);
+	
+	// Return name
+	return console->name();
+}
+
+/**
+ * native BasicLogger(const name[], const filename[])
+ */
+AMX_NATIVE(BasicLogger)
 {
 	// Get params
 	char *filename, *logger;
 	amx_StrParam(amx, params[1], logger);
 	amx_StrParam(amx, params[2], filename);
 
-	// Define path
-	char maxpath[255];
-	sprintf(maxpath, "scriptfiles/", filename);
-
-	// Create logger
-	auto my_logger = spdlog::basic_logger_mt(logger, maxpath);
-	return 1;
+	// Logger
+	auto logger = spdlog::basic_logger_mt(logger, filename);
+	
+	// Return name
+	return logger->name();
 }
 
-cell AMX_NATIVE_CALL Log(AMX *amx, cell *params)
+/**
+ * native RotatingLogger(const name[], const filename[], int seconds)
+ */
+AMX_NATIVE(RotatingLogger)
 {
-
-	const unsigned int
-		first_param_idx = 2,
-		num_args = (params[0] / sizeof(cell)),
-		num_dyn_args = num_args - (first_param_idx - 1);
-	unsigned int param_counter = 0;
-
-	//auto log = Log::get
-
-	logprintf("log call %d", num_dyn_args);
-	return 1;
+	// Get params
+	char *filename, *logger;
+	amx_StrParam(amx, params[1], logger);
+	amx_StrParam(amx, params[2], filename);
+	
+	// Logger
+	auto logger = spdlog::basic_logger_mt(logger, filename, params[3]);
+	
+	// Return name
+	return logger->name();
 }
 
-
-// Register natives
-AMX_NATIVE_INFO natives[] =
+/**
+ * native DailyLogger(const name[], const filename[], int hour, int minute)
+ */
+AMX_NATIVE(DailyLogger)
 {
-	{ "CreateLog", CreateLog },
-	{ "Log", Log }
-};
-
-// Getter for natives (TODO: Refactor this)
-AMX_NATIVE_INFO * Natives::get()
-{
-	return natives;
+	// Get params
+	char *filename, *logger;
+	amx_StrParam(amx, params[1], logger);
+	amx_StrParam(amx, params[2], filename);
+	
+	// Logger
+	auto logger = spdlog::daily_logger_mt(logger, filename, params[3], params[4]);
+	
+	// Return name
+	return logger->name();
 }
+
+/**
+ * native SysLogger(const name[], const ident[], int pid)
+ */
+AMX_NATIVE(SysLogger)
+{
+	// Get params
+	char *filename, *ident;
+	amx_StrParam(amx, params[1], logger);
+	amx_StrParam(amx, params[2], ident);
+	
+	// Logger
+	auto logger = spdlog::syslog_logger(logger, ident, params[3]);
+	
+	// Return name
+	return logger->name();
+}
+
 
 SAMPLOG_END_NS

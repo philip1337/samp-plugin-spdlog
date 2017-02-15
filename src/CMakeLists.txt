@@ -3,7 +3,6 @@ include(AddSAMPPlugin)
 
 set(SOURCE_FILES
 	Logprintf.cpp
-	Log.cpp
 	Natives.cpp
 	Plugin.cpp
 )
@@ -11,7 +10,6 @@ set(SOURCE_FILES
 SET(HEADER_FILES
 	Logprintf.hpp
 	Config.hpp
-	Log.hpp
 	Natives.hpp
 )
 
