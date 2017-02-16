@@ -104,13 +104,12 @@ AMX_NATIVE(SysLogger)
  */
 AMX_NATIVE(LoggerSetAsyncMode)
 {
-	// Addr
-	cell *pAddr = nullptr;
-	amx_GetAddr(amx, params[1], &pAddr);
-
 	// Get number from ptr
-	auto number = static_cast<int>(*pAddr);
-	spdlog::set_async_mode(number);
+	auto number = static_cast<std::size_t>(params[1]);
+	if (number > 1024)
+		spdlog::set_async_mode(number);
+	else
+		logprintf("[SPDLog Error] Invalid size %d (LoggerSetAsyncMode)", number);
 	return 0;
 }
 
