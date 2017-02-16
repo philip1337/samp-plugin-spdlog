@@ -10,6 +10,9 @@
 #include "plugin.h"
 #include "Logprintf.hpp"
 
+// SPDLog
+#include <spdlog/spdlog.h>
+
 // Natives
 #include "Natives.hpp"
 
@@ -36,39 +39,44 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
 
 // @PluginUnload
 PLUGIN_EXPORT void PLUGIN_CALL Unload() {
+	// Close all before unload
+	spdlog::drop_all();
+
+	// Unload message
 	logprintf("Plugin samp-plugin-spdlog unloaded.");
 }
 
 // @Natives
 const AMX_NATIVE_INFO natives[] = {
 	// Create logger
-	AMX_DEFINE_NATIVE(ConsoleLogger)	// Return string ID - (string name)
-	AMX_DEFINE_NATIVE(BasicLogger)		// Return string ID - (string name, string path)
-	AMX_DEFINE_NATIVE(RotatingLogger)	// Return string ID - (string name, string path, int time)
-	AMX_DEFINE_NATIVE(DailyLogger)		// Return string ID - (string name, string path, int hour, int minute)
-	AMX_DEFINE_NATIVE(SysLogger)		// Return string ID - (string name, string ident, int pid)
+	AMX_DEFINE_NATIVE(ConsoleLogger)	// Return int (state) - (string name)
+	AMX_DEFINE_NATIVE(BasicLogger)		// Return int (state) - (string name, string path)
+	AMX_DEFINE_NATIVE(RotatingLogger)	// Return int (state) - (string name, string path, int time, int maxfiles)
+	AMX_DEFINE_NATIVE(DailyLogger)		// Return int (state) - (string name, string path, int hour, int minute)
+	AMX_DEFINE_NATIVE(SysLogger)		// Return int (state) - (string name, string ident, int pid)
 	
 	// Logger specified functions
-	//AMX_DEFINE_NATIVE(LoggerSetAsyncMode)	// Return void - (int size) 
-	//AMX_DEFINE_NATIVE(LoggerSetPattern)		// Return void - (string pattern)
-	//AMX_DEFINE_NATIVE(LoggerSetLevel)		// Return void - (int level)
-	//AMX_DEFINE_NATIVE(LoggerSetFlushLevel)	// Return void - (int level)
+	AMX_DEFINE_NATIVE(LoggerSetAsyncMode)	// Return void - (int size) 
+	AMX_DEFINE_NATIVE(LoggerSetPattern)		// Return void - (string pattern)
+	AMX_DEFINE_NATIVE(LoggerSetLevel)		// Return void - (int level)
 	
 	// Log functions
-	//AMX_DEFINE_NATIVE(LogInfo)				// Return void - (int id, string, params...)
-	//AMX_DEFINE_NATIVE(LogWarn)				// Return void - (int id, string, params...)
-	//AMX_DEFINE_NATIVE(LogCritical)			// Return void - (int id, string, params...)
-	//AMX_DEFINE_NATIVE(LogDebug)				// Return void - (int id, string, params...)
-	
+	AMX_DEFINE_NATIVE(LogInfo)				// Return void - (string name, string message, params...)
+	AMX_DEFINE_NATIVE(LogWarn)				// Return void - (string name, string message, params...)
+	AMX_DEFINE_NATIVE(LogCritical)			// Return void - (string name, string message, params...)
+	AMX_DEFINE_NATIVE(LogDebug)				// Return void - (string name, string message, params...)
+	AMX_DEFINE_NATIVE(LogTrace)				// Return void - (string name, string message, params...)
+	AMX_DEFINE_NATIVE(LogError)				// Return void - (string name, string message, params...)
+
 	// Error handler
-	//AMX_DEFINE_NATIVE(SpdEnableErrorHandler)	// Return void - (bool state)
-	//AMX_DEFINE_NATVE(SpdCloseAllLoggers)		// Return void - ()
+	AMX_DEFINE_NATIVE(EnableErrorLogger)	// Return void - ()
+	AMX_DEFINE_NATIVE(DropAllLogger)		// Return void - ()
 	{NULL, NULL}
 };
 
 // @AmxLoad
 PLUGIN_EXPORT int PLUGIN_CALL AmxLoad(AMX *amx) {
-	return amx_Register(amx, native_list, -1);
+	return amx_Register(amx, natives, -1);
 }
 
 // @AmxUnload

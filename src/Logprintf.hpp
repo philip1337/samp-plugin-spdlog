@@ -2,6 +2,7 @@
 #define SAMPLOG_LOGPRINTF_HPP
 
 #include <cstdarg>
+#include <spdlog/sinks/sink.h>
 
 typedef void (*logprintf_t)(const char *format, ...);
 extern logprintf_t logprintf;
