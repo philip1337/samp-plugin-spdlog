@@ -12,80 +12,6 @@
 
 SAMPLOG_BEGIN_NS
 
-// TODO: Refactor
-// http://stackoverflow.com/questions/39493542/building-a-dynamic-list-of-named-arguments-for-fmtlib
-// helper only:
-inline void set_type(fmt::ULongLong& result, uint32_t index, fmt::internal::Arg::Type t)
-{
-	unsigned shift = index * 4;
-	uint64_t mask = 0xf;
-	result |= static_cast<uint64_t>(t) << shift;
-}
-
-// input: 
-//     pattern = fmt::format string
-//     vars = dictionary of string/string arguments
-// output:
-//     formatted string
-std::string dformat(const std::string& pattern, const std::unordered_map<std::string, std::string>& vars)
-{
-	// this is a vector of "named arguments" - straightforward enough.
-	std::vector<fmt::internal::NamedArg<char>> av;
-
-	// fmtlib uses an optimization that stores the types of the first 16 arguments as 
-	// bitmask-encoded 64-bit integer. 
-	fmt::ULongLong types = 0;
-
-	// we need to build the named-arguments vector. 
-	// we cannot resize it to the required size (even though we know it - we have the
-	// dictionary), because NamedArg has no default constructor.
-	uint32_t index = 0;
-	for (const auto& item : vars)
-	{
-		av.emplace_back(fmt::internal::NamedArg<char>(item.first, item.second));
-
-		// we need to pack the first 16 arguments - see above
-		if (index < fmt::ArgList::MAX_PACKED_ARGS)
-		{
-			set_type(types, index, fmt::internal::Arg::NAMED_ARG);
-		}
-		++index;
-	}
-
-	// and this is a bit tricky: depending on the number of arguments we use two mutually
-	// incompatible vectors to create an arglist. It has everything to do with the speed
-	// (and memory) optimization above, even though the code looks nearly identical.
-	if (index >= fmt::ArgList::MAX_PACKED_ARGS)
-	{
-		std::vector<fmt::internal::Arg> avdata;
-
-		// note the additional terminating Arg::NONE
-		avdata.resize(vars.size() + 1);
-		index = 0;
-		for (const auto& item : av)
-		{
-			avdata[index].type = fmt::internal::Arg::NAMED_ARG;
-			avdata[index].pointer = &av[index];
-			++index;
-		}
-		return fmt::format(pattern, fmt::ArgList(types, &avdata[0]));
-	}
-	else
-	{
-		std::vector<fmt::internal::Value> avdata;
-
-		// no need for terminating Arg::NONE, because ARG_NONE is the last encoded type 
-		avdata.resize(vars.size());
-		index = 0;
-		for (const auto& item : av)
-		{
-			avdata[index].pointer = &av[index];
-			++index;
-		}
-		return fmt::format(pattern, fmt::ArgList(types, &avdata[0]));
-	}
-}
-
 /**
  * native ConsoleLogger(const name[])
  */
@@ -184,8 +110,7 @@ AMX_NATIVE(LoggerSetAsyncMode)
 
 	// Get number from ptr
 	auto number = static_cast<int>(*pAddr);
-
-	spdlog::set_async_mode((size_t)number);
+	spdlog::set_async_mode(number);
 	return 0;
 }
 
@@ -258,6 +183,9 @@ AMX_NATIVE(LoggerSetLevel)
 	return 0;
 }
 
+/**
+ * Needed for parser https://github.com/maddinat0r/samp-log/blob/master/src/natives.cpp
+ */
 std::string AMXAPI amx_GetCppString(AMX *amx, cell param)
 {
 	char *tmp;
@@ -267,6 +195,7 @@ std::string AMXAPI amx_GetCppString(AMX *amx, cell param)
 
 /**
  * native LogInfo(const name[], const message[], {Float,_}:...)
+ * Using message parsing from https://github.com/maddinat0r/samp-log/blob/master/src/natives.cpp
  */
 AMX_NATIVE(LogInfo)
 {
@@ -274,40 +203,70 @@ AMX_NATIVE(LogInfo)
 	std::string data;
 
 	// Get params
-	char *name, *message;
+	char *name;
 	amx_StrParam(amx, params[1], name);
-	amx_StrParam(amx, params[2], message);
 
-	if (name == NULL || message == NULL)
+	// Message
+	std::string format_str = amx_GetCppString(amx, params[2]);
+
+	if (format_str.length() == 0)
 		return 0;
 
 	// Calculate param size
 	const unsigned int first = 3, argc = (params[0] / sizeof(cell)), args = argc - (first - 1);
 
-	// Dirty solution
-	int counter = 0;
-	std::unordered_map<std::string, std::string> vars;
-	for (unsigned int i = first; i <= argc; i++) {
-		// Addr
-		cell *pAddr = nullptr;
-		amx_GetAddr(amx, params[i], &pAddr);
-		auto number = static_cast<int>(*pAddr);
-		auto data = amx_GetCppString(amx, params[i]);
+	fmt::MemoryWriter str_writer;
 
-		// Integer
-		if (data.length() == 1 && number > 1) {
-			vars[std::to_string(counter)] = std::to_string(number);
-		} else {
-			vars[std::to_string(counter)] = data;
+	unsigned int pCounter = 0;
+	size_t
+		spec_pos = std::string::npos,
+		spec_offset = 0;
+
+	while ((spec_pos = format_str.find('%', spec_offset)) != std::string::npos)
+	{
+		if (pCounter >= args)
+			return false; // too many args given
+
+		if (spec_pos == (format_str.length() - 1))
+			return false;
+
+		str_writer << format_str.substr(spec_offset, spec_pos - spec_offset);
+		spec_offset = spec_pos + 2; // 2 = '%' + char specifier (like 'd' or 's')
+
+		cell *pAddr = nullptr;
+
+		switch (format_str.at(spec_pos + 1))
+		{
+		case '%': // '%' escape
+			str_writer << '%';
+			break;
+		case 's': // string
+			str_writer << amx_GetCppString(amx, params[first + pCounter]);
+			break;
+		case 'd': // decimal
+		case 'i': // integer
+			amx_GetAddr(amx, params[first + pCounter], &pAddr);
+			str_writer << static_cast<int>(*pAddr);
+			break;
+		case 'f': // float
+			amx_GetAddr(amx, params[first + pCounter], &pAddr);
+			str_writer << amx_ctof(*pAddr);
+			break;
+		default:
+			return false;
 		}
-		counter++;
+
+		pCounter++;
 	}
 
-	// Convert to string
-	std::string str(message);
+	// copy rest of format string
+	str_writer << format_str.substr(spec_offset);
 
 	// Get logger and write
-	spdlog::get(name)->info(dformat(str,vars).c_str());
+	auto logger = spdlog::get(name);
+	if (logger)
+		logger->info(str_writer.c_str());
+	return logger ? 1 : 0;
 	return 0;
 }
 
@@ -320,42 +279,70 @@ AMX_NATIVE(LogWarn)
 	std::string data;
 
 	// Get params
-	char *name, *message;
+	char *name;
 	amx_StrParam(amx, params[1], name);
-	amx_StrParam(amx, params[2], message);
 
-	if (name == NULL || message == NULL)
+	// Message
+	std::string format_str = amx_GetCppString(amx, params[2]);
+
+	if (format_str.length() == 0)
 		return 0;
 
 	// Calculate param size
 	const unsigned int first = 3, argc = (params[0] / sizeof(cell)), args = argc - (first - 1);
 
-	// Dirty solution
-	int counter = 0;
-	std::unordered_map<std::string, std::string> vars;
-	for (unsigned int i = first; i <= argc; i++) {
-		// Addr
-		cell *pAddr = nullptr;
-		amx_GetAddr(amx, params[i], &pAddr);
-		auto number = static_cast<int>(*pAddr);
-		auto data = amx_GetCppString(amx, params[i]);
+	fmt::MemoryWriter str_writer;
 
-		// Integer
-		if (data.length() == 1 && number > 1) {
-			vars[std::to_string(counter)] = std::to_string(number);
+	unsigned int pCounter = 0;
+	size_t
+		spec_pos = std::string::npos,
+		spec_offset = 0;
+
+	while ((spec_pos = format_str.find('%', spec_offset)) != std::string::npos)
+	{
+		if (pCounter >= args)
+			return false; // too many args given
+
+		if (spec_pos == (format_str.length() - 1))
+			return false;
+
+		str_writer << format_str.substr(spec_offset, spec_pos - spec_offset);
+		spec_offset = spec_pos + 2; // 2 = '%' + char specifier (like 'd' or 's')
+
+		cell *pAddr = nullptr;
+
+		switch (format_str.at(spec_pos + 1))
+		{
+		case '%': // '%' escape
+			str_writer << '%';
+			break;
+		case 's': // string
+			str_writer << amx_GetCppString(amx, params[first + pCounter]);
+			break;
+		case 'd': // decimal
+		case 'i': // integer
+			amx_GetAddr(amx, params[first + pCounter], &pAddr);
+			str_writer << static_cast<int>(*pAddr);
+			break;
+		case 'f': // float
+			amx_GetAddr(amx, params[first + pCounter], &pAddr);
+			str_writer << amx_ctof(*pAddr);
+			break;
+		default:
+			return false;
 		}
-		else {
-			vars[std::to_string(counter)] = data;
-		}
-		counter++;
+
+		pCounter++;
 	}
 
-	// Convert to string
-	std::string str(message);
+	// copy rest of format string
+	str_writer << format_str.substr(spec_offset);
 
 	// Get logger and write
-	spdlog::get(name)->warn(dformat(str, vars).c_str());
-	return 0;
+	auto logger = spdlog::get(name);
+	if (logger)
+		logger->warn(str_writer.c_str());
+	return logger ? 1 : 0;
 }
 
 /**
@@ -367,42 +354,70 @@ AMX_NATIVE(LogDebug)
 	std::string data;
 
 	// Get params
-	char *name, *message;
+	char *name;
 	amx_StrParam(amx, params[1], name);
-	amx_StrParam(amx, params[2], message);
 
-	if (name == NULL || message == NULL)
+	// Message
+	std::string format_str = amx_GetCppString(amx, params[2]);
+
+	if (format_str.length() == 0)
 		return 0;
 
 	// Calculate param size
 	const unsigned int first = 3, argc = (params[0] / sizeof(cell)), args = argc - (first - 1);
 
-	// Dirty solution
-	int counter = 0;
-	std::unordered_map<std::string, std::string> vars;
-	for (unsigned int i = first; i <= argc; i++) {
-		// Addr
-		cell *pAddr = nullptr;
-		amx_GetAddr(amx, params[i], &pAddr);
-		auto number = static_cast<int>(*pAddr);
-		auto data = amx_GetCppString(amx, params[i]);
+	fmt::MemoryWriter str_writer;
 
-		// Integer
-		if (data.length() == 1 && number > 1) {
-			vars[std::to_string(counter)] = std::to_string(number);
+	unsigned int pCounter = 0;
+	size_t
+		spec_pos = std::string::npos,
+		spec_offset = 0;
+
+	while ((spec_pos = format_str.find('%', spec_offset)) != std::string::npos)
+	{
+		if (pCounter >= args)
+			return false; // too many args given
+
+		if (spec_pos == (format_str.length() - 1))
+			return false;
+
+		str_writer << format_str.substr(spec_offset, spec_pos - spec_offset);
+		spec_offset = spec_pos + 2; // 2 = '%' + char specifier (like 'd' or 's')
+
+		cell *pAddr = nullptr;
+
+		switch (format_str.at(spec_pos + 1))
+		{
+		case '%': // '%' escape
+			str_writer << '%';
+			break;
+		case 's': // string
+			str_writer << amx_GetCppString(amx, params[first + pCounter]);
+			break;
+		case 'd': // decimal
+		case 'i': // integer
+			amx_GetAddr(amx, params[first + pCounter], &pAddr);
+			str_writer << static_cast<int>(*pAddr);
+			break;
+		case 'f': // float
+			amx_GetAddr(amx, params[first + pCounter], &pAddr);
+			str_writer << amx_ctof(*pAddr);
+			break;
+		default:
+			return false;
 		}
-		else {
-			vars[std::to_string(counter)] = data;
-		}
-		counter++;
+
+		pCounter++;
 	}
 
-	// Convert to string
-	std::string str(message);
+	// copy rest of format string
+	str_writer << format_str.substr(spec_offset);
 
 	// Get logger and write
-	spdlog::get(name)->debug(dformat(str, vars).c_str());
-	return 0;
+	auto logger = spdlog::get(name);
+	if (logger)
+		logger->debug(str_writer.c_str());
+	return logger ? 1 : 0;
 }
 
 /**
@@ -414,42 +429,70 @@ AMX_NATIVE(LogTrace)
 	std::string data;
 
 	// Get params
-	char *name, *message;
+	char *name;
 	amx_StrParam(amx, params[1], name);
-	amx_StrParam(amx, params[2], message);
 
-	if (name == NULL || message == NULL)
+	// Message
+	std::string format_str = amx_GetCppString(amx, params[2]);
+
+	if (format_str.length() == 0)
 		return 0;
 
 	// Calculate param size
 	const unsigned int first = 3, argc = (params[0] / sizeof(cell)), args = argc - (first - 1);
 
-	// Dirty solution
-	int counter = 0;
-	std::unordered_map<std::string, std::string> vars;
-	for (unsigned int i = first; i <= argc; i++) {
-		// Addr
-		cell *pAddr = nullptr;
-		amx_GetAddr(amx, params[i], &pAddr);
-		auto number = static_cast<int>(*pAddr);
-		auto data = amx_GetCppString(amx, params[i]);
+	fmt::MemoryWriter str_writer;
 
-		// Integer
-		if (data.length() == 1 && number > 1) {
-			vars[std::to_string(counter)] = std::to_string(number);
+	unsigned int pCounter = 0;
+	size_t
+		spec_pos = std::string::npos,
+		spec_offset = 0;
+
+	while ((spec_pos = format_str.find('%', spec_offset)) != std::string::npos)
+	{
+		if (pCounter >= args)
+			return false; // too many args given
+
+		if (spec_pos == (format_str.length() - 1))
+			return false;
+
+		str_writer << format_str.substr(spec_offset, spec_pos - spec_offset);
+		spec_offset = spec_pos + 2; // 2 = '%' + char specifier (like 'd' or 's')
+
+		cell *pAddr = nullptr;
+
+		switch (format_str.at(spec_pos + 1))
+		{
+		case '%': // '%' escape
+			str_writer << '%';
+			break;
+		case 's': // string
+			str_writer << amx_GetCppString(amx, params[first + pCounter]);
+			break;
+		case 'd': // decimal
+		case 'i': // integer
+			amx_GetAddr(amx, params[first + pCounter], &pAddr);
+			str_writer << static_cast<int>(*pAddr);
+			break;
+		case 'f': // float
+			amx_GetAddr(amx, params[first + pCounter], &pAddr);
+			str_writer << amx_ctof(*pAddr);
+			break;
+		default:
+			return false;
 		}
-		else {
-			vars[std::to_string(counter)] = data;
-		}
-		counter++;
+
+		pCounter++;
 	}
 
-	// Convert to string
-	std::string str(message);
+	// copy rest of format string
+	str_writer << format_str.substr(spec_offset);
 
 	// Get logger and write
-	spdlog::get(name)->trace(dformat(str, vars).c_str());
-	return 0;
+	auto logger = spdlog::get(name);
+	if (logger)
+		logger->trace(str_writer.c_str());
+	return logger ? 1 : 0;
 }
 
 /**
@@ -461,42 +504,70 @@ AMX_NATIVE(LogError)
 	std::string data;
 
 	// Get params
-	char *name, *message;
+	char *name;
 	amx_StrParam(amx, params[1], name);
-	amx_StrParam(amx, params[2], message);
 
-	if (name == NULL || message == NULL)
+	// Message
+	std::string format_str = amx_GetCppString(amx, params[2]);
+
+	if (format_str.length() == 0)
 		return 0;
 
 	// Calculate param size
 	const unsigned int first = 3, argc = (params[0] / sizeof(cell)), args = argc - (first - 1);
 
-	// Dirty solution
-	int counter = 0;
-	std::unordered_map<std::string, std::string> vars;
-	for (unsigned int i = first; i <= argc; i++) {
-		// Addr
-		cell *pAddr = nullptr;
-		amx_GetAddr(amx, params[i], &pAddr);
-		auto number = static_cast<int>(*pAddr);
-		auto data = amx_GetCppString(amx, params[i]);
+	fmt::MemoryWriter str_writer;
 
-		// Integer
-		if (data.length() == 1 && number > 1) {
-			vars[std::to_string(counter)] = std::to_string(number);
+	unsigned int pCounter = 0;
+	size_t
+		spec_pos = std::string::npos,
+		spec_offset = 0;
+
+	while ((spec_pos = format_str.find('%', spec_offset)) != std::string::npos)
+	{
+		if (pCounter >= args)
+			return false; // too many args given
+
+		if (spec_pos == (format_str.length() - 1))
+			return false;
+
+		str_writer << format_str.substr(spec_offset, spec_pos - spec_offset);
+		spec_offset = spec_pos + 2; // 2 = '%' + char specifier (like 'd' or 's')
+
+		cell *pAddr = nullptr;
+
+		switch (format_str.at(spec_pos + 1))
+		{
+		case '%': // '%' escape
+			str_writer << '%';
+			break;
+		case 's': // string
+			str_writer << amx_GetCppString(amx, params[first + pCounter]);
+			break;
+		case 'd': // decimal
+		case 'i': // integer
+			amx_GetAddr(amx, params[first + pCounter], &pAddr);
+			str_writer << static_cast<int>(*pAddr);
+			break;
+		case 'f': // float
+			amx_GetAddr(amx, params[first + pCounter], &pAddr);
+			str_writer << amx_ctof(*pAddr);
+			break;
+		default:
+			return false;
 		}
-		else {
-			vars[std::to_string(counter)] = data;
-		}
-		counter++;
+
+		pCounter++;
 	}
 
-	// Convert to string
-	std::string str(message);
+	// copy rest of format string
+	str_writer << format_str.substr(spec_offset);
 
 	// Get logger and write
-	spdlog::get(name)->error(dformat(str, vars).c_str());
-	return 0;
+	auto logger = spdlog::get(name);
+	if (logger)
+		logger->error(str_writer.c_str());
+	return logger ? 1 : 0;
 }
 
 /**
@@ -508,42 +579,70 @@ AMX_NATIVE(LogCritical)
 	std::string data;
 
 	// Get params
-	char *name, *message;
+	char *name;
 	amx_StrParam(amx, params[1], name);
-	amx_StrParam(amx, params[2], message);
 
-	if (name == NULL || message == NULL)
+	// Message
+	std::string format_str = amx_GetCppString(amx, params[2]);
+
+	if (format_str.length() == 0)
 		return 0;
 
 	// Calculate param size
 	const unsigned int first = 3, argc = (params[0] / sizeof(cell)), args = argc - (first - 1);
 
-	// Dirty solution
-	int counter = 0;
-	std::unordered_map<std::string, std::string> vars;
-	for (unsigned int i = first; i <= argc; i++) {
-		// Addr
-		cell *pAddr = nullptr;
-		amx_GetAddr(amx, params[i], &pAddr);
-		auto number = static_cast<int>(*pAddr);
-		auto data = amx_GetCppString(amx, params[i]);
+	fmt::MemoryWriter str_writer;
 
-		// Integer
-		if (data.length() == 1 && number > 1) {
-			vars[std::to_string(counter)] = std::to_string(number);
+	unsigned int pCounter = 0;
+	size_t
+		spec_pos = std::string::npos,
+		spec_offset = 0;
+
+	while ((spec_pos = format_str.find('%', spec_offset)) != std::string::npos)
+	{
+		if (pCounter >= args)
+			return false; // too many args given
+
+		if (spec_pos == (format_str.length() - 1))
+			return false;
+
+		str_writer << format_str.substr(spec_offset, spec_pos - spec_offset);
+		spec_offset = spec_pos + 2; // 2 = '%' + char specifier (like 'd' or 's')
+
+		cell *pAddr = nullptr;
+
+		switch (format_str.at(spec_pos + 1))
+		{
+		case '%': // '%' escape
+			str_writer << '%';
+			break;
+		case 's': // string
+			str_writer << amx_GetCppString(amx, params[first + pCounter]);
+			break;
+		case 'd': // decimal
+		case 'i': // integer
+			amx_GetAddr(amx, params[first + pCounter], &pAddr);
+			str_writer << static_cast<int>(*pAddr);
+			break;
+		case 'f': // float
+			amx_GetAddr(amx, params[first + pCounter], &pAddr);
+			str_writer << amx_ctof(*pAddr);
+			break;
+		default:
+			return false;
 		}
-		else {
-			vars[std::to_string(counter)] = data;
-		}
-		counter++;
+
+		pCounter++;
 	}
 
-	// Convert to string
-	std::string str(message);
+	// copy rest of format string
+	str_writer << format_str.substr(spec_offset);
 
 	// Get logger and write
-	spdlog::get(name)->critical(dformat(str, vars).c_str());
-	return 0;
+	auto logger = spdlog::get(name);
+	if (logger)
+		logger->critical(str_writer.c_str());
+	return logger ? 1 : 0;
 }
 
 /**
