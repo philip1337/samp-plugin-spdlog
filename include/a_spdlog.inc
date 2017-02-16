@@ -4,6 +4,23 @@
  *  (c) Copyright 20017-2018, ProMetheus
  */
 
+#if defined HEADER_A_SPDLOG_INC
+	#endinput
+#endif
+#define HEADER_A_SPDLOG_INC
+#define HEADER_A_SPDLOG_OUT "a_spdlog"
+ 
+// Check version
+#define SPDLOG_VERSION 1
+if (SPDLOG_VERSION != LoggerVersion()) {
+	// Print
+	print("\n[SPDLog Warning]: spdlog include version missmatch\n");
+	
+	// Try to print with SPDLog
+	ConsoleLogger(HEADER_A_SPDLOG_OUT);
+	LogCritical(HEADER_A_SPDLOG_OUT, "spdlog include version missmatch");
+}
+
 enum SPDLOG_LEVEL
 {
 	TRACE = 0,

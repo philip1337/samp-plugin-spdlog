@@ -74,6 +74,9 @@ const AMX_NATIVE_INFO natives[] = {
 	// Error handler
 	AMX_DEFINE_NATIVE(EnableErrorLogger)	// Return void - ()
 	AMX_DEFINE_NATIVE(DropAllLogger)		// Return void - ()
+
+	// Version check
+	AMX_DEFINE_NATIVE(LoggerVersion)		// Return int - ()
 	{NULL, NULL}
 };
 

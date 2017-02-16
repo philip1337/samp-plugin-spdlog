@@ -27,7 +27,6 @@ namespace Natives
 	AMX_DECLARE_NATIVE(LoggerSetPattern);
 	AMX_DECLARE_NATIVE(LoggerSetLevel);
 	
-
 	AMX_DECLARE_NATIVE(LogInfo);
 	AMX_DECLARE_NATIVE(LogWarn);
 	AMX_DECLARE_NATIVE(LogCritical);
@@ -39,6 +38,8 @@ namespace Natives
 
 	AMX_DECLARE_NATIVE(DropAllLogger);
 	AMX_DECLARE_NATIVE(EnableErrorLogger);
+
+	AMX_DECLARE_NATIVE(LoggerVersion);
 };
 
 SAMPLOG_END_NS
