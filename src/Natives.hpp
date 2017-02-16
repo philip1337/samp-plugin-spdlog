@@ -23,8 +23,10 @@ namespace Natives
 	AMX_DECLARE_NATIVE(SysLogger);
 
 	AMX_DECLARE_NATIVE(LoggerSetAsyncMode);
+	AMX_DECLARE_NATIVE(LoggerSetAsyncModeIntervaled);
 	AMX_DECLARE_NATIVE(LoggerSetPattern);
 	AMX_DECLARE_NATIVE(LoggerSetLevel);
+	
 
 	AMX_DECLARE_NATIVE(LogInfo);
 	AMX_DECLARE_NATIVE(LogWarn);
@@ -32,6 +34,8 @@ namespace Natives
 	AMX_DECLARE_NATIVE(LogDebug);
 	AMX_DECLARE_NATIVE(LogTrace);
 	AMX_DECLARE_NATIVE(LogError);
+	AMX_DECLARE_NATIVE(LogFlushOn);
+	AMX_DECLARE_NATIVE(LogFlush);
 
 	AMX_DECLARE_NATIVE(DropAllLogger);
 	AMX_DECLARE_NATIVE(EnableErrorLogger);

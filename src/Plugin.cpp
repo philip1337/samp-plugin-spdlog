@@ -33,7 +33,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
 	logprintf("  Initializing samp-plugin-spdlog (SPDLog Port)");
 	logprintf("  https://github.com/Sphinxila/samp-plugin-spdlog");
 	logprintf("  Author: ProMetheus(Sphinxila)");
-	logprintf(" ----------------------------------------------");
+	logprintf(" ----------------------------------------------");	
 	return 1;
 }
 
@@ -57,16 +57,19 @@ const AMX_NATIVE_INFO natives[] = {
 	
 	// Logger specified functions
 	AMX_DEFINE_NATIVE(LoggerSetAsyncMode)	// Return void - (int size) 
+	AMX_DEFINE_NATIVE(LoggerSetAsyncModeIntervaled)	// Return void - (int size, int seconds) 
 	AMX_DEFINE_NATIVE(LoggerSetPattern)		// Return void - (string pattern)
 	AMX_DEFINE_NATIVE(LoggerSetLevel)		// Return void - (int level)
 	
 	// Log functions
-	AMX_DEFINE_NATIVE(LogInfo)				// Return void - (string name, string message, params...)
-	AMX_DEFINE_NATIVE(LogWarn)				// Return void - (string name, string message, params...)
-	AMX_DEFINE_NATIVE(LogCritical)			// Return void - (string name, string message, params...)
-	AMX_DEFINE_NATIVE(LogDebug)				// Return void - (string name, string message, params...)
-	AMX_DEFINE_NATIVE(LogTrace)				// Return void - (string name, string message, params...)
-	AMX_DEFINE_NATIVE(LogError)				// Return void - (string name, string message, params...)
+	AMX_DEFINE_NATIVE(LogInfo)				// Return int - (string name, string message, params...)
+	AMX_DEFINE_NATIVE(LogWarn)				// Return int - (string name, string message, params...)
+	AMX_DEFINE_NATIVE(LogCritical)			// Return int - (string name, string message, params...)
+	AMX_DEFINE_NATIVE(LogDebug)				// Return int - (string name, string message, params...)
+	AMX_DEFINE_NATIVE(LogTrace)				// Return int - (string name, string message, params...)
+	AMX_DEFINE_NATIVE(LogError)				// Return int - (string name, string message, params...)
+	AMX_DEFINE_NATIVE(LogFlushOn)			// Return int - (string name, int level)
+	AMX_DEFINE_NATIVE(LogFlush)				// Return int - (string name)
 
 	// Error handler
 	AMX_DEFINE_NATIVE(EnableErrorLogger)	// Return void - ()

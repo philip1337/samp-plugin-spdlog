@@ -65,6 +65,14 @@ native SysLogger(const name[], const path[], pid);
 native LoggerSetAsyncMode(bytes);
 
 /**
+ * LoggerSetAsyncModeIntervaled
+ * Set asynchronus mode for sink flush with flush interval
+ * @param size_t size
+ * @param int seconds
+ */
+native LoggerSetAsyncModeIntervaled(bytes, seconds);
+
+/**
  * LoggerSetPattern
  * Set timestamp pattern | spdlog::set_pattern
  * @param string name
@@ -128,8 +136,28 @@ native LogTrace(const name[], const message[], {Float,_}:...);
 native LogError(const name[], const message[], {Float,_}:...);
 
 /**
+ * LogFlush
+ * @param string name
+ * @param SPDLOG_LEVEL:level
+ */
+native LogFlushOn(const name[], SPDLOG_LEVEL:level);
+
+
+/**
+ * LogFlush
+ * @param string name
+ */
+native LogFlush(const name[]);
+
+
+/**
  * DropAllLogger
  * - Drop all logger | spdlog::drop_all();
  */
 native DropAllLogger(const name[]);
 
+/**
+ * EnableErrorLogger
+ * - Prints errors from spd into the server_log.txt
+ */
+native EnableErrorLogger();

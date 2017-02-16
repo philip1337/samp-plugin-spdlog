@@ -106,10 +106,26 @@ AMX_NATIVE(LoggerSetAsyncMode)
 {
 	// Get number from ptr
 	auto number = static_cast<std::size_t>(params[1]);
-	if (number > 1024)
+	if (number >= 1024)
 		spdlog::set_async_mode(number);
 	else
 		logprintf("[SPDLog Error] Invalid size %d (LoggerSetAsyncMode)", number);
+	return 0;
+}
+
+/**
+ * native LoggerSetAsyncModeIntervaled(int size, int seconds)
+ * Note flush interval just periodically flushes to disk, and not waits for the queue to become empty.
+ */
+AMX_NATIVE(LoggerSetAsyncModeIntervaled)
+{
+	// Get number from ptr
+	auto number = static_cast<std::size_t>(params[1]);
+	auto seconds = static_cast<int>(params[2]);
+	if (number >= 1024)
+		spdlog::set_async_mode(number, spdlog::async_overflow_policy::block_retry, nullptr, std::chrono::seconds(seconds));
+	else
+		logprintf("[SPDLog Error] Invalid size %d (LoggerSetAsyncModeIntervaled)", number);
 	return 0;
 }
 
@@ -664,4 +680,70 @@ AMX_NATIVE(EnableErrorLogger)
 	return 0;
 }
 
+/**
+* native LogFlushOn(const name[], int size)
+*/
+AMX_NATIVE(LogFlushOn)
+{
+	// Get params
+	char *name;
+	amx_StrParam(amx, params[1], name);
+
+	// Default
+	auto level = spdlog::level::trace;
+
+	// Addr
+	cell *pAddr = nullptr;
+	amx_GetAddr(amx, params[2], &pAddr);
+
+	// Get number from ptr
+	auto number = static_cast<int>(*pAddr);
+
+	// Translate log level
+	switch (number) {
+	case spdlog::level::trace:
+		level = spdlog::level::trace;
+		break;
+	case spdlog::level::debug:
+		level = spdlog::level::debug;
+		break;
+	case spdlog::level::info:
+		level = spdlog::level::info;
+		break;
+	case spdlog::level::warn:
+		level = spdlog::level::warn;
+		break;
+	case spdlog::level::err:
+		level = spdlog::level::err;
+		break;
+	case spdlog::level::critical:
+		level = spdlog::level::critical;
+		break;
+	case spdlog::level::off:
+		level = spdlog::level::off;
+		break;
+	}
+
+	// Get logger and write
+	auto logger = spdlog::get(name);
+	if (logger)
+		logger->flush_on(level);
+	return logger ? 1 : 0;
+}
+
+/**
+ * native LogFlush(const name[])
+ */
+AMX_NATIVE(LogFlush) 
+{
+	// Get params
+	char *name;
+	amx_StrParam(amx, params[1], name);
+
+	// Get logger and write
+	auto logger = spdlog::get(name);
+	if (logger)
+		logger->flush();
+	return logger ? 1 : 0;
+}
 SAMPLOG_END_NS

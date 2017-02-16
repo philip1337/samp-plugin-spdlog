@@ -28,9 +28,10 @@ It's still work in progress, not all spdlog features are implemented yet.
 |-------|-------|:-----:|
 |DropAllLogger (At plugin unload this function gets called)|-|-|
 |LoggerSetAsyncMode|bytes|-|
+|LoggerSetAsyncModeIntervaled|bytes, seconds|-|
 |LoggerSetPattern|const pattern[]|-|
 |LoggerSetLevel|SPDLOG_LEVEL:level|-|
-
+|EnableErrorLogger (Prints spdlog errors)|-|-|
 
 ## Different log types
 |native|params|return|level|
@@ -41,6 +42,12 @@ It's still work in progress, not all spdlog features are implemented yet.
 |LogDebug|const name[], const message[], {Float,_}:...|int int (1/0)|1|
 |LogTrace|const name[], const message[], {Float,_}:...|int int (1/0)|0|
 |LogError|const name[], const message[], {Float,_}:...|int int (1/0)|4|
+
+## Flush properties for logger
+|native|params|return|
+|-------|-------|:-----:|
+|LogFlushOn|const name[], SPDLOG_LEVEL:level|int int (1/0)|
+|LogFlush|const name[]|int int (1/0)|
 
 - [Pawno include file: a_spdlog.inc](include/a_spdlog.inc)
 
