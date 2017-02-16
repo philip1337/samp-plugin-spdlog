@@ -15,7 +15,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 set (CMAKE_CXX_STANDARD 11)
 
 # Set project title
-project(samp-plugin-log)
+project(samp-plugin-spdlog)
 
 # Add this to prevent missmatches
 add_definitions(-D_ITERATOR_DEBUG_LEVEL=0)
