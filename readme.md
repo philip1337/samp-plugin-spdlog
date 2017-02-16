@@ -44,7 +44,7 @@ It's still work in progress, not all spdlog features are implemented yet.
 
 - [Pawno include file: a_spdlog.inc](include/a_spdlog.inc)
 
-### Change the log level in runtime
+### Change the log level at runtime
 If necessary, you can enable or disable the debugging output.
 
     public OnPlayerCommandText(playerid, cmdtext[])
