@@ -1,5 +1,5 @@
 # CMake required version
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 
 # "Only interpret if() arguments as variables or keywords when unquoted."
 cmake_policy(SET CMP0054 NEW)
@@ -10,6 +10,9 @@ if(NOT CMAKE_BUILD_TYPE)
       "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
       FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
+
+# Set Cpp11
+set (CMAKE_CXX_STANDARD 11)
 
 # Set project title
 project(samp-plugin-log)

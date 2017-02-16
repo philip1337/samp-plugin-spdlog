@@ -23,3 +23,4 @@ add_samp_plugin(loglib
 target_link_libraries(loglib spdlog)
 
 target_include_directories(loglib PUBLIC ${SAMPSDK_PATH})
+target_include_directories(loglib PUBLIC ${SAMPSDK_PATH}/amx)
