@@ -17,7 +17,7 @@ add_samp_plugin(loglib
   ${SOURCE_FILES}
   ${HEADER_FILES}
   ${SAMPSDK_PATH}/amxplugin.cpp
-  plugin.def
+  Plugin.def
 )
 
 target_link_libraries(loglib spdlog)
