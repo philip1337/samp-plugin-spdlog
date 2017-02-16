@@ -62,7 +62,7 @@ native SysLogger(const name[], const path[], pid);
  * Set asynchronus mode for sink flush
  * @param size_t size
  */
-native LoggerSetAsyncMode(size);
+native LoggerSetAsyncMode(bytes);
 
 /**
  * LoggerSetPattern
