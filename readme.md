@@ -2,7 +2,7 @@
 This plugin allows you to  use the spdlog library in a sa-mp gamemode.
 It's still work in progress, not all spdlog features are implemented yet.
 
-- [Gabime/spdlog](https://github.com/gabime/spdlog])
+- [Gabime/spdlog](https://github.com/gabime/spdlog)
 - [Benchmark of spdlog](https://github.com/gabime/spdlog#benchmarks)
 - [Test gamemode](test/test_gamemode.pwn)
 
