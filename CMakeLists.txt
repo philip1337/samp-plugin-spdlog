@@ -30,14 +30,11 @@ set(SAMP_LOG_EXTERNAL ${SAMP_LOG_ROOT}/external)
 # Module
 set(CMAKE_MODULE_PATH
 	${CMAKE_MODULE_PATH}
+	${SAMP_LOG_ROOT}/build/cmake
 	${SAMP_LOG_EXTERNAL}/sampcmake
 )
 
-# Add externals
-add_subdirectory(${SAMP_LOG_EXTERNAL}/spdlog)
-
-# Set SDK Path
-SET(SAMPSDK_PATH ${SAMP_LOG_EXTERNAL}/sampsdk)
+include(SpdlogExternal)
 
 # Add src
 add_subdirectory(src)
