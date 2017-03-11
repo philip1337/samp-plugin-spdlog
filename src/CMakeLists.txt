@@ -4,6 +4,7 @@ include(AddSAMPPlugin)
 set(SOURCE_FILES
 	Logprintf.cpp
 	Natives.cpp
+	Logger.cpp
 	Plugin.cpp
 )
 
@@ -11,6 +12,7 @@ SET(HEADER_FILES
 	Logprintf.hpp
 	Config.hpp
 	Natives.hpp
+	Logger.hpp
 )
 
 add_samp_plugin(spdloglib

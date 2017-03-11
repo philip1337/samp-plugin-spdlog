@@ -5,8 +5,11 @@
 
 SAMPLOG_BEGIN_NS
 
-#define AMX_NATIVE(native) \
-	cell AMX_NATIVE_CALL Natives::native(AMX *amx, cell *params)
+#define AMX_NATIVE(native, argc) \
+	cell AMX_NATIVE_CALL Natives::native(AMX *amx, cell *params) { \
+		AMX_CHECK_PARAMS(argc, native)
+
+#define AMX_NATIVE_END }
 
 #define AMX_DECLARE_NATIVE(native) \
 	cell AMX_NATIVE_CALL native(AMX *amx, cell *params)
@@ -14,7 +17,14 @@ SAMPLOG_BEGIN_NS
 #define AMX_DEFINE_NATIVE(native) \
 	{#native, SAMPLOG_NS::Natives::native},
 
-namespace Natives 
+#define AMX_CHECK_PARAMS(count, fname) \
+	if (params[0] < (count * sizeof(cell))) \
+	{ \
+		logprintf("[SPDLog] Fatal Error calling '%s': expecting >= %d parameter(s), but found < %d", #fname, count, params[0] / sizeof(cell)); \
+		return 0; \
+	}
+
+	namespace Natives
 {
 	AMX_DECLARE_NATIVE(ConsoleLogger);
 	AMX_DECLARE_NATIVE(BasicLogger);
@@ -26,7 +36,7 @@ namespace Natives
 	AMX_DECLARE_NATIVE(LoggerSetAsyncModeIntervaled);
 	AMX_DECLARE_NATIVE(LoggerSetPattern);
 	AMX_DECLARE_NATIVE(LoggerSetLevel);
-	
+
 	AMX_DECLARE_NATIVE(LogInfo);
 	AMX_DECLARE_NATIVE(LogWarn);
 	AMX_DECLARE_NATIVE(LogCritical);
