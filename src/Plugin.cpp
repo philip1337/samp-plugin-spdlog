@@ -16,14 +16,34 @@
 // Natives
 #include "Natives.hpp"
 
+#include <csignal>
+
 // SA-MP Stuff
 void **ppPluginData;
 extern void *pAMXFunctions;
 
 // SPD LOG: https://github.com/gabime/spdlog/wiki/1.-QuickStart
 
+// Signal handler
+void signal(int signum) {
+	// Uninitialize
+	logprintf("[SPDLog] Received signal %d - dropping loggers...", signum);
+
+	// Drop all
+	spdlog::drop_all();
+
+	// Uninitialize
+	logprintf("[SPDLog] Dropped all loggers.", signum);
+
+	// Continue
+	raise(signum);
+}
+
 // @PluginLoad
 PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
+	// Signal handler
+	signal(SIGSEGV, signal);
+
 	// AMX Stuff
 	pAMXFunctions = ppData[PLUGIN_DATA_AMX_EXPORTS];
 	logprintf = (logprintf_t)ppData[PLUGIN_DATA_LOGPRINTF];
