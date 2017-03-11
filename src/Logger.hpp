@@ -20,8 +20,12 @@ public:
 	/**
 	 * Format string
 	 */
-	static bool Logger::formatString(const std::string loggerName, AMX *amx, cell *params, fmt::MemoryWriter &writer);
-	
+	static bool formatString(const std::string loggerName, AMX *amx, cell *params, fmt::MemoryWriter &writer);
+
+	/**
+	 * Check path
+	 */
+	static bool checkPath(const std::string path);
 };
 
 SAMPLOG_END_NS

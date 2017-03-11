@@ -18,13 +18,16 @@ SET(HEADER_FILES
 add_samp_plugin(spdloglib
   ${SOURCE_FILES}
   ${HEADER_FILES}
-  ${SAMPSDK_PATH}/amxplugin.cpp
   Plugin.def
 )
 
-target_link_libraries(spdloglib spdlog)
+target_compile_definitions(
+	spdloglib
+	PRIVATE
+	BOOST_ALL_NO_LIB
+)
 
-target_include_directories(spdloglib PUBLIC ${SAMPSDK_PATH})
-target_include_directories(spdloglib PUBLIC ${SAMPSDK_PATH}/amx)
+target_link_libraries(spdloglib boost-lib-filesystem sampsdk spdlog)
+target_include_directories(spdloglib PRIVATE ${BOOST_LIB_PATH})
 
 set_target_properties(spdloglib PROPERTIES OUTPUT_NAME "spdlog")

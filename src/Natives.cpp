@@ -32,6 +32,10 @@ AMX_NATIVE(BasicLogger, 2)
 	auto name = Logger::getString(amx, params[1]);
 	auto filename = Logger::getString(amx, params[2]);
 
+	// Check path
+	if (!Logger::checkPath(filename))
+		return false;
+
 	// Logger
 	auto logger = spdlog::basic_logger_mt(name, filename);
 
@@ -46,7 +50,11 @@ AMX_NATIVE(RotatingLogger, 4)
 	// Get params
 	auto name = Logger::getString(amx, params[1]);
 	auto filename = Logger::getString(amx, params[2]);
-	
+
+	// Check path
+	if (!Logger::checkPath(filename))
+		return false;
+
 	// Logger
 	auto logger = spdlog::rotating_logger_mt(name, filename, params[3], params[4]);
 	
@@ -61,7 +69,11 @@ AMX_NATIVE(DailyLogger, 42)
 	// Get params
 	auto name = Logger::getString(amx, params[1]);
 	auto filename = Logger::getString(amx, params[2]);
-	
+
+	// Check path
+	if (!Logger::checkPath(filename))
+		return false;
+
 	// Logger
 	auto logger = spdlog::daily_logger_mt(name, filename, params[3], params[4]);
 	
@@ -76,6 +88,10 @@ AMX_NATIVE(SysLogger, 3)
 	// Get params
 	auto name = Logger::getString(amx, params[1]);
 	auto filename = Logger::getString(amx, params[2]);
+
+	// Check path
+	if (!Logger::checkPath(filename))
+		return false;
 
 	#ifdef SPDLOG_ENABLE_SYSLOG 
 		// Logger

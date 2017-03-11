@@ -1,6 +1,9 @@
 #include "Config.hpp"
 #include "Logger.hpp"
 
+#include <boost/system/config.hpp>
+#include <boost/filesystem.hpp>
+
 SAMPLOG_BEGIN_NS
 
 const std::string Logger::getString(AMX *amx, cell param)
@@ -73,6 +76,27 @@ bool Logger::formatString(const std::string loggerName, AMX *amx, cell *params, 
 	// copy rest of format string
 	writer << message.substr(spec_offset);
 	return true;
+}
+
+bool Logger::checkPath(const std::string path)
+{
+	// Initialize boost path
+	boost::filesystem::path p(path);
+	
+	// If file already exists do nothing
+	if (boost::filesystem::is_regular_file(p))
+		return true;
+
+	// Parent path
+	auto parent = p.parent_path();
+
+	// If path is a file
+	if (boost::filesystem::is_regular_file(parent)) {
+		logprintf("[SPDLog] Failed to create directory for (%s) resolved from (%s).", parent.c_str(), path.c_str());
+		return false;
+	}
+
+	return boost::filesystem::create_directories(parent);
 }
 
 SAMPLOG_END_NS
