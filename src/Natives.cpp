@@ -65,7 +65,7 @@ AMX_NATIVE_END
 /**
  * native DailyLogger(const name[], const filename[], int hour, int minute)
  */
-AMX_NATIVE(DailyLogger, 42)
+AMX_NATIVE(DailyLogger, 4)
 	// Get params
 	auto name = Logger::getString(amx, params[1]);
 	auto filename = Logger::getString(amx, params[2]);
