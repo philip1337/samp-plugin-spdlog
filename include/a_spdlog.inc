@@ -168,7 +168,7 @@ native LogFlush(const name[]);
  * DropAllLogger
  * - Drop all logger | spdlog::drop_all();
  */
-native DropAllLogger(const name[]);
+native DropAllLogger();
 
 /**
  * EnableErrorLogger
