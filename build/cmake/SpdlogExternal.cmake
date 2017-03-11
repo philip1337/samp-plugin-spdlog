@@ -23,12 +23,16 @@ SET(BOOST_SYS_FILES
 )
 
 add_library(
-	boost-system-lib
+	boost-lib-system
 	${BOOST_SYS_FILES}
 )
 
-target_include_directories(boost-system-lib PRIVATE ${BOOST_LIB_PATH})
+target_include_directories(boost-lib-system PRIVATE ${BOOST_LIB_PATH})
 
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	set_property(TARGET boost-lib-system APPEND_STRING PROPERTY COMPILE_FLAGS " -m32")
+	set_property(TARGET boost-lib-system APPEND_STRING PROPERTY LINK_FLAGS    " -m32")
+endif()
 
 #################################
 # Filesystem lib
@@ -53,7 +57,13 @@ add_library(
 target_compile_definitions(boost-lib-filesystem PRIVATE BOOST_ALL_NO_LIB)
 target_include_directories(boost-lib-filesystem PRIVATE ${BOOST_LIB_PATH})
 
-target_link_libraries(boost-lib-filesystem boost-system-lib)
+target_link_libraries(boost-lib-filesystem boost-lib-system)
+
+# Target
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	set_property(TARGET boost-lib-filesystem APPEND_STRING PROPERTY COMPILE_FLAGS " -m32")
+	set_property(TARGET boost-lib-filesystem APPEND_STRING PROPERTY LINK_FLAGS    " -m32")
+endif()
 
 ##################################################
 # AMXLib / sampsdk
