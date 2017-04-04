@@ -13,7 +13,7 @@ const std::string Logger::getString(AMX *amx, cell param)
 	return (tmp != NULL) ? tmp : std::string();
 }
 
-bool Logger::formatString(const std::string loggerName, AMX *amx, cell *params, fmt::MemoryWriter &writer) {
+bool Logger::formatString(const std::string& loggerName, AMX *amx, cell *params, fmt::MemoryWriter &writer) {
 	// Data
 	std::string data;
 
@@ -78,11 +78,11 @@ bool Logger::formatString(const std::string loggerName, AMX *amx, cell *params, 
 	return true;
 }
 
-bool Logger::checkPath(const std::string path)
+bool Logger::checkPath(const std::string& path)
 {
 	// Initialize boost path
 	boost::filesystem::path p(path);
-	
+
 	// If file already exists do nothing
 	if (boost::filesystem::is_regular_file(p))
 		return true;
@@ -90,13 +90,22 @@ bool Logger::checkPath(const std::string path)
 	// Parent path
 	auto parent = p.parent_path();
 
+	// If directory already exists do nothing
+	if (boost::filesystem::is_directory(parent))
+		return true;
+
 	// If path is a file
 	if (boost::filesystem::is_regular_file(parent)) {
-		logprintf("[SPDLog] Failed to create directory for (%s) resolved from (%s).", parent.c_str(), path.c_str());
+		logprintf("[SPDLog] Failed to create directory (%s) path is a file. resolved from (%s).", parent.c_str(), path.c_str());
 		return false;
 	}
 
-	return boost::filesystem::create_directories(parent);
+	// Create directory tree
+	auto ret = boost::filesystem::create_directories(parent);
+	if (!ret)
+		logprintf("[SPDLog] Failed to create directory (%s).", parent.c_str());
+
+	return ret;
 }
 
 SAMPLOG_END_NS
