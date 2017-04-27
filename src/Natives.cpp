@@ -447,7 +447,7 @@ AMX_NATIVE(LoggerVersion, 1)
 
 	// Check version
 	if (version != BUILD_REV)
-		logprintf("[SPDLog] Warning: Version mismatch detected %s != %s ", BUILD_REV, version);
+		logprintf("[SPDLog] Warning: Version mismatch detected %s != %s ", BUILD_REV, version.c_str());
 
 	return 1;
 AMX_NATIVE_END
