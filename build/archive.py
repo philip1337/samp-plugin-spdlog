@@ -6,5 +6,5 @@ def build(name, binDir):
 	shutil.make_archive(name, 'zip', os.path.join(os.getcwd(), binDir))
 
 if __name__ == "__main__":
-	main(*sys.argv[1:])
+	build(*sys.argv[1:])
 	
