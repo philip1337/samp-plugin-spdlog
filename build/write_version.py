@@ -25,7 +25,7 @@ def ParseIncludeFile(srcInclude, dstInclude, rev):
 			for line in sF:
 				dF.write(line.replace("{{GIT_REVISION}}", rev))
 
-def main(srcDir, srcInclude, dstInclude):
+def main(srcDir, srcInclude, dstInclude, versionPath):
 	# Get rev
 	rev = GetRevision(srcDir)
 	branch = GetBranchName(srcDir)
@@ -41,7 +41,7 @@ def main(srcDir, srcInclude, dstInclude):
 		"#define BUILD_DATE \"{0}\"".format(datetime.datetime.now())
 	)
 
-	with open("{}/src/Version.hpp".format(srcDir), "w+") as f:
+	with open("{}".format(versionPath), "w+") as f:
 		f.write("\n".join(lines))
 
 if __name__ == "__main__":

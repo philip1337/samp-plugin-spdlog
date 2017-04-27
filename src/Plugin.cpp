@@ -9,7 +9,7 @@
 // SAMP SDK & Log handler
 #include "plugin.h"
 #include "Logprintf.hpp"
-#include "Version.hpp"
+#include <Version.hpp>
 
 // SPDLog
 #include <spdlog/spdlog.h>

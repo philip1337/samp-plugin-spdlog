@@ -4,7 +4,7 @@
 
 #include "Logger.hpp"
 #include "Natives.hpp"
-#include "Version.hpp"
+#include <Version.hpp>
 
 #include <iostream>
 #include <memory>
