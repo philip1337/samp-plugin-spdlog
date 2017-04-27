@@ -1,2 +1,3 @@
 external/
 .gclient_entries
+src/Version.hpp

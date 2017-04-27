@@ -11,6 +11,12 @@ if(NOT CMAKE_BUILD_TYPE)
       FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
+# Python required
+find_package(PythonInterp)
+if (NOT PythonInterp_FOUND)
+	message(FATAL_ERROR "No python interpreter found, please install python!")
+endif()
+
 # Set Cpp11
 set (CMAKE_CXX_STANDARD 11)
 
@@ -23,6 +29,7 @@ add_definitions(-D_ITERATOR_DEBUG_LEVEL=0)
 # Base path constants
 set(SAMP_LOG_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(SAMP_LOG_BIN_ROOT ${CMAKE_CURRENT_BINARY_DIR})
+set(SAMP_LOG_BIN_OUT_DIR ${CMAKE_BINARY_DIR}/build)
 
 # Externals
 set(SAMP_LOG_EXTERNAL ${SAMP_LOG_ROOT}/external)

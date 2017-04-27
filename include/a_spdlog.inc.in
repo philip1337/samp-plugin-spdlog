@@ -1,23 +1,36 @@
 /** 
  *  SA-MP Log Functions
  *
- *  (c) Copyright 20017-2018, ProMetheus
+ *  (c) Copyright 2017-2018, ProMetheus
  */
 
 #if defined HEADER_A_SPDLOG_INC
 	#endinput
 #endif
 #define HEADER_A_SPDLOG_INC
+
+/**
+ * Comment this out if you dont want to use the version check
+ * - Or define SPDLOG_DISABLE_CHECK_VERSION before including spdlog_inc
+ */
+#if !defined SPDLOG_DISABLE_CHECK_VERSION
+	#define SPDLOG_CHECK_VERSION
+#endif
+
+/** 
+ * SPDLog Output
+ */
 #define HEADER_A_SPDLOG_OUT "a_spdlog"
  
 /**
  * LoggerVersion
+ * @param string version
  */
-native LoggerVersion();
- 
-// Define header version
-#define SPDLOG_VERSION 1
+native LoggerVersion(const version[]);
 
+/**
+ * SPDLOG Levels
+ */
 enum SPDLOG_LEVEL
 {
 	TRACE = 0,
@@ -175,3 +188,39 @@ native DropAllLogger();
  * - Prints errors from spd into the server_log.txt
  */
 native EnableErrorLogger();
+
+/**
+ * SPDLog
+ * - Check version missmatch to avoid include / plugin missmatches
+ */
+#if defined SPDLOG_CHECK_VERSION
+	/**
+	 * SPDLog - Version
+	 */
+	#define SPDLOG_VERSION "{{GIT_REVISION}}"
+
+	/**
+	 * OnGameModeInit (Hook)
+	 * - Used to call the spdlog version check
+	 */
+	public OnGameModeInit() // Die Parameter kommen natürlich immer auf die Funktion an ;)
+	{
+		#if defined _OnGameModeInit
+			LoggerVersion(SPDLOG_VERSION);
+			_OnGameModeInit();
+		#else		
+			printf("[SPDLog] Failed to initialize version check!");
+		#endif
+		return 1;
+	}
+
+	#if defined _OnGameModeInit
+		forward _OnGameModeInit(); // Die Parameter kommen natürlich immer auf die Funktion an ;)
+	#endif
+	#if defined _ALS_OnGameModeInit
+		#undef OnGameModeInit
+	#else
+		#define _ALS_OnGameModeInit
+	#endif
+	#define OnGameModeInit _OnGameModeInit
+#endif

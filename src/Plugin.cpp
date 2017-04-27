@@ -9,6 +9,7 @@
 // SAMP SDK & Log handler
 #include "plugin.h"
 #include "Logprintf.hpp"
+#include "Version.hpp"
 
 // SPDLog
 #include <spdlog/spdlog.h>
@@ -53,6 +54,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
 	logprintf("  Initializing samp-plugin-spdlog (SPDLog Port)");
 	logprintf("  https://github.com/Sphinxila/samp-plugin-spdlog");
 	logprintf("  Author: ProMetheus(Sphinxila)");
+	logprintf("  Version: " BUILD_REV);
 	logprintf(" ----------------------------------------------");	
 	return 1;
 }
