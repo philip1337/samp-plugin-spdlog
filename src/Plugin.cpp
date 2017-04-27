@@ -54,7 +54,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
 	logprintf("  Initializing samp-plugin-spdlog (SPDLog Port)");
 	logprintf("  https://github.com/Sphinxila/samp-plugin-spdlog");
 	logprintf("  Author: ProMetheus(Sphinxila)");
-	logprintf("  Version: " BUILD_REV);
+	logprintf("  Version: %s", BUILD_REV);
 	logprintf(" ----------------------------------------------");	
 	return 1;
 }
