@@ -174,12 +174,8 @@ AMX_NATIVE(LoggerSetLevel, 1)
 	// Default
 	auto level = spdlog::level::trace;
 
-	// Addr
-	cell *pAddr = nullptr;
-	amx_GetAddr(amx, params[1], &pAddr);
-
-	// Get number from ptr
-	auto number = static_cast<int>(*pAddr);
+	// Get number
+	auto number = static_cast<int>(params[1]);
 
 	// Translate log level
 	switch (number) {
@@ -384,12 +380,8 @@ AMX_NATIVE(LogFlushOn, 2)
 	// Default
 	auto level = spdlog::level::trace;
 
-	// Addr
-	cell *pAddr = nullptr;
-	amx_GetAddr(amx, params[2], &pAddr);
-
-	// Get number from ptr
-	auto number = static_cast<int>(*pAddr);
+	// Get number
+	auto number = static_cast<int>(params[2]);
 
 	// Translate log level
 	switch (number) {
@@ -458,12 +450,8 @@ AMX_NATIVE(LogLevel, 2)
 	// Default
 	auto level = spdlog::level::trace;
 
-	// Addr
-	cell *pAddr = nullptr;
-	amx_GetAddr(amx, params[2], &pAddr);
-
-	// Get number from ptr
-	auto number = static_cast<int>(*pAddr);
+	// Get number
+	auto number = static_cast<int>(params[2]);
 
 	// Translate log level
 	switch (number) {
