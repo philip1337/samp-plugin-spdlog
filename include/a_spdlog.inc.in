@@ -176,6 +176,12 @@ native LogFlushOn(const name[], SPDLOG_LEVEL:level);
  */
 native LogFlush(const name[]);
 
+/**
+ * LogLevel
+ * @param string name
+ * @param SPDLOG_LEVEL:level
+ */
+native LogLevel(const name[], SPDLOG_LEVEL:level);
 
 /**
  * DropAllLogger

@@ -437,6 +437,66 @@ AMX_NATIVE(LogFlush, 1)
 	return logger ? 1 : 0;
 AMX_NATIVE_END
 
+/**
+ * native LogLevel(const name[], int size)
+ * TODO: <Refactor> 
+ */
+AMX_NATIVE(LogLevel, 2)
+	// Get params
+	auto name = Logger::getString(amx, params[1]);
+
+	/**
+	 *  trace = 0,
+	 *	debug = 1,
+	 *	info = 2,
+	 *	warn = 3,
+	 *	err = 4,
+	 *	critical = 5,
+	 *	off = 6
+	 */
+
+	// Default
+	auto level = spdlog::level::trace;
+
+	// Addr
+	cell *pAddr = nullptr;
+	amx_GetAddr(amx, params[2], &pAddr);
+
+	// Get number from ptr
+	auto number = static_cast<int>(*pAddr);
+
+	// Translate log level
+	switch (number) {
+		case spdlog::level::trace:
+			level = spdlog::level::trace;
+			break;
+		case spdlog::level::debug:
+			level = spdlog::level::debug;
+			break;
+		case spdlog::level::info:
+			level = spdlog::level::info;
+			break;
+		case spdlog::level::warn:
+			level = spdlog::level::warn;
+			break;
+		case spdlog::level::err:
+			level = spdlog::level::err;
+			break;
+		case spdlog::level::critical:
+			level = spdlog::level::critical;
+			break;
+		case spdlog::level::off:
+			level = spdlog::level::off;
+			break;
+	}
+
+	// Get logger and write
+	auto logger = spdlog::get(name);
+	if (logger)
+		logger->set_level(level);
+
+	return logger ? 1 : 0;
+AMX_NATIVE_END
 
 /**
  * native LoggerVersion(const version[])
