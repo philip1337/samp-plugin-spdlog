@@ -92,6 +92,7 @@ const AMX_NATIVE_INFO natives[] = {
 	AMX_DEFINE_NATIVE(LogError)				// Return int - (string name, string message, params...)
 	AMX_DEFINE_NATIVE(LogFlushOn)			// Return int - (string name, int level)
 	AMX_DEFINE_NATIVE(LogFlush)				// Return int - (string name)
+	AMX_DEFINE_NATIVE(LogLevel)				// Return int - (string name, int level)
 
 	// Error handler
 	AMX_DEFINE_NATIVE(EnableErrorLogger)	// Return void - ()
