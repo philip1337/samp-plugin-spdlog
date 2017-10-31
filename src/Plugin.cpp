@@ -26,10 +26,10 @@ extern void *pAMXFunctions;
 // SPD LOG: https://github.com/gabime/spdlog/wiki/1.-QuickStart
 
 // Signal handler
-void signal(int signum) {
+void sighandler(int signum) {
 	// Uninitialize
 	logprintf("[SPDLog] Received signal %d - dropping loggers...", signum);
-
+	
 	// Drop all
 	spdlog::drop_all();
 
@@ -37,13 +37,18 @@ void signal(int signum) {
 	logprintf("[SPDLog] Dropped all loggers.", signum);
 
 	// Continue
-	raise(signum);
+	if (signum == 11) {
+		signal(signum, SIG_DFL);
+		kill(getpid(), signum);
+	} else {
+		raise(signum);
+	}
 }
 
 // @PluginLoad
 PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
 	// Signal handler
-	signal(SIGSEGV, signal);
+	signal(SIGSEGV, sighandler);
 
 	// AMX Stuff
 	pAMXFunctions = ppData[PLUGIN_DATA_AMX_EXPORTS];
