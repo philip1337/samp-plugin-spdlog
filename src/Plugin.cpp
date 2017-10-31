@@ -37,12 +37,16 @@ void sighandler(int signum) {
 	logprintf("[SPDLog] Dropped all loggers.", signum);
 
 	// Continue
-	if (signum == 11) {
-		signal(signum, SIG_DFL);
-		kill(getpid(), signum);
-	} else {
+	#ifndef _WIN32
+		if (signum == 11) {
+			signal(signum, SIG_DFL);
+			kill(getpid(), signum);
+		} else {
+			raise(signum);
+		}
+	#else
 		raise(signum);
-	}
+	#endif
 }
 
 // @PluginLoad
