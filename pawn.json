@@ -4,13 +4,13 @@
     "include_path": "include",
     "resources": [
         {
-            "name": "samp-plugin-spdlog-win-x86.zip",
+            "name": "^(?:samp-plugin-)?spdlog-win-x86\\.zip$",
             "platform": "windows",
             "archive": true,
             "plugins": ["spdlog.dll"]
         },
         {
-            "name": "samp-plugin-spdlog-linux-x86.zip",
+            "name": "^(?:samp-plugin-)?spdlog-linux-x86\\.zip$",
             "platform": "linux",
             "archive": true,
             "plugins": ["spdlog.so"]
